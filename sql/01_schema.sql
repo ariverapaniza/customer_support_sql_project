@@ -1,27 +1,7 @@
 /* ============================================================
    PROYECTO SQL - ANALISIS DE TICKETS DE SOPORTE
-   Archivo: 01_creacion_esquema.sql
+   Archivo: 01_schema.sql
    Autor: Arturo Rivera Paniza
-
-   Objetivo:
-   Crear desde cero una base de datos relacional normalizada
-   para analizar tickets de soporte técnico.
-
-   Este script crea:
-   - Base de datos
-   - Tabla de origen/staging
-   - Tablas de dimensiones
-   - Tabla principal de hechos
-   - Claves primarias
-   - Claves foráneas
-   - Constraints
-   - Índices
-   - Vistas de negocio
-   - Función de negocio para SLA
-
-   Nota:
-   La tabla de origen permite cargar los datos crudos del CSV.
-   Las dimensiones y la tabla de hechos representan el modelo limpio.
    ============================================================ */
 
 
@@ -43,19 +23,6 @@ USE analitica_soporte_clientes;
 -- ------------------------------------------------------------
 /*
    Esta tabla representa la capa de carga inicial.
-
-   Granularidad:
-   Una fila representa un ticket tal como viene desde el CSV original.
-
-   Decisión de diseño:
-   Se almacenan casi todos los campos como VARCHAR/TEXT porque esta
-   tabla representa datos crudos. Las conversiones de tipos se harán
-   después en el script 02_carga_transformacion.sql usando CAST,
-   STR_TO_DATE y reglas de limpieza.
-
-   No se colocan UNIQUE ni FOREIGN KEY aquí porque el objetivo de
-   staging es permitir detectar duplicados, nulos y errores antes
-   de cargar el modelo limpio.
 */
 
 CREATE TABLE IF NOT EXISTS origen_tickets_soporte (
@@ -94,20 +61,6 @@ CREATE TABLE IF NOT EXISTS origen_tickets_soporte (
 -- ------------------------------------------------------------
 /*
    Tabla: dim_cliente
-
-   Granularidad:
-   Una fila representa un cliente único.
-
-   Decisión de PK:
-   Se utiliza id_cliente como clave primaria artificial porque es
-   estable, numérica y eficiente para relacionar con la tabla de hechos.
-
-   Decisión de UNIQUE:
-   El correo_cliente se define como UNIQUE porque dentro de este proyecto
-   será usado como identificador natural del cliente.
-
-   Constraint:
-   La edad se limita entre 18 y 100 para evitar valores fuera de rango.
 */
 
 CREATE TABLE IF NOT EXISTS dim_cliente (
@@ -130,12 +83,6 @@ CREATE TABLE IF NOT EXISTS dim_cliente (
 -- ------------------------------------------------------------
 /*
    Tabla: dim_producto
-
-   Granularidad:
-   Una fila representa un producto comprado por el cliente.
-
-   Decisión de UNIQUE:
-   nombre_producto es único para evitar duplicar el mismo producto.
 */
 
 CREATE TABLE IF NOT EXISTS dim_producto (
@@ -151,10 +98,6 @@ CREATE TABLE IF NOT EXISTS dim_producto (
 -- ------------------------------------------------------------
 /*
    Tabla: dim_tipo_ticket
-
-   Granularidad:
-   Una fila representa un tipo general de solicitud.
-   Ejemplos: Technical issue, Refund request, Billing inquiry.
 */
 
 CREATE TABLE IF NOT EXISTS dim_tipo_ticket (
@@ -170,10 +113,6 @@ CREATE TABLE IF NOT EXISTS dim_tipo_ticket (
 -- ------------------------------------------------------------
 /*
    Tabla: dim_asunto_ticket
-
-   Granularidad:
-   Una fila representa el asunto específico del ticket.
-   Ejemplos: Battery life, Product setup, Account access.
 */
 
 CREATE TABLE IF NOT EXISTS dim_asunto_ticket (
@@ -189,13 +128,6 @@ CREATE TABLE IF NOT EXISTS dim_asunto_ticket (
 -- ------------------------------------------------------------
 /*
    Tabla: dim_estado
-
-   Granularidad:
-   Una fila representa el estado operativo del ticket.
-   Ejemplos: Open, Closed, Pending Customer Response.
-
-   Campo es_estado_final:
-   Permite identificar si el ticket está cerrado o sigue pendiente.
 */
 
 CREATE TABLE IF NOT EXISTS dim_estado (
@@ -213,10 +145,6 @@ CREATE TABLE IF NOT EXISTS dim_estado (
 -- ------------------------------------------------------------
 /*
    Tabla: dim_prioridad
-
-   Granularidad:
-   Una fila representa el nivel de prioridad del ticket.
-
    nivel_prioridad:
    Permite ordenar prioridades de forma lógica:
    1 = Low
@@ -242,8 +170,6 @@ CREATE TABLE IF NOT EXISTS dim_prioridad (
 /*
    Tabla: dim_canal
 
-   Granularidad:
-   Una fila representa el canal por el cual entró el ticket.
    Ejemplos: Email, Phone, Chat, Social media.
 */
 
@@ -260,13 +186,6 @@ CREATE TABLE IF NOT EXISTS dim_canal (
 -- ------------------------------------------------------------
 /*
    Tabla: dim_fecha
-
-   Granularidad:
-   Una fila representa un día calendario.
-
-   Decisión de PK:
-   Se usa la fecha como clave primaria porque cada día calendario
-   es naturalmente único.
 */
 
 CREATE TABLE IF NOT EXISTS dim_fecha (
@@ -292,25 +211,8 @@ CREATE TABLE IF NOT EXISTS dim_fecha (
 /*
    Tabla: hecho_tickets
 
-   Granularidad:
-   Una fila representa un ticket individual de soporte.
-
-   Decisión de PK:
    id_ticket viene del dataset original y representa el identificador
    único del ticket.
-
-   Decisión de FK:
-   La tabla de hechos se conecta con dimensiones para evitar repetir
-   datos descriptivos como cliente, producto, estado, canal y prioridad.
-
-   Campos de fechas:
-   - fecha_compra: fecha de compra del producto.
-   - fecha_primera_respuesta: primera respuesta del equipo de soporte.
-   - fecha_resolucion: momento de resolución del ticket, si aplica.
-
-   calificacion_satisfaccion:
-   Puede ser NULL porque tickets abiertos o pendientes normalmente
-   todavía no tienen calificación.
 */
 
 CREATE TABLE IF NOT EXISTS hecho_tickets (
@@ -406,11 +308,6 @@ ON hecho_tickets (id_fecha_compra);
 -- ------------------------------------------------------------
 /*
    Vista: vista_detalle_tickets
-
-   Objetivo:
-   Facilitar el análisis evitando repetir JOINs en cada consulta.
-
-   Esta vista une la tabla de hechos con todas sus dimensiones principales.
 */
 
 CREATE OR REPLACE VIEW vista_detalle_tickets AS
@@ -462,9 +359,6 @@ INNER JOIN dim_canal dca
 /*
    Vista: vista_kpis_soporte
 
-   Objetivo:
-   Mostrar indicadores generales del área de soporte.
-
    Métricas:
    - Total de tickets
    - Tickets cerrados
@@ -495,9 +389,6 @@ FROM vista_detalle_tickets;
 -- ------------------------------------------------------------
 /*
    Funcion: fn_sla_prioridad_horas
-
-   Objetivo:
-   Devolver la cantidad de horas objetivo de resolución según prioridad.
 
    Regla de negocio propuesta:
    - Critical: 4 horas

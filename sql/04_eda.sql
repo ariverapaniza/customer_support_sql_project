@@ -1,28 +1,7 @@
 /* ============================================================
    PROYECTO SQL - ANALISIS DE TICKETS DE SOPORTE
-   Archivo: 04_eda_analisis.sql
+   Archivo: 04_eda.sql
    Autor: Arturo Rivera Paniza
-
-   Objetivo:
-   Realizar analisis exploratorio y consultas de negocio sobre el
-   modelo relacional de tickets de soporte tecnico.
-
-   Este script incluye:
-   - Consultas descriptivas del modelo
-   - KPIs generales
-   - Analisis por estado, prioridad, canal, producto y tipo de ticket
-   - CTEs simples y encadenadas
-   - Subqueries
-   - INNER JOIN y LEFT JOIN
-   - Agregaciones: COUNT, SUM, AVG
-   - CASE y logica condicional
-   - Funciones de fecha
-   - Funcion ventana RANK() OVER
-   - Uso de la funcion de negocio fn_sla_prioridad_horas
-
-   Nota:
-   Este archivo es el nucleo analitico del proyecto. No modifica datos.
-   Todas las consultas estan documentadas con el insight esperado.
    ============================================================ */
 
 USE analitica_soporte_clientes;
@@ -32,8 +11,7 @@ USE analitica_soporte_clientes;
 -- 0. VERIFICACION INICIAL DEL MODELO
 -- ------------------------------------------------------------
 /*
-   Objetivo:
-   Confirmar que las tablas principales tienen datos cargados antes de
+   Objetivo: Confirmar que las tablas principales tienen datos cargados antes de
    iniciar el analisis.
 
    Insight:
@@ -41,7 +19,7 @@ USE analitica_soporte_clientes;
    la carga principal fue consistente.
 */
 
-SELECT '00 - Verificacion inicial del modelo' AS seccion;
+-- SELECT '00 - Verificacion inicial del modelo' AS seccion;
 
 SELECT 'origen_tickets_soporte' AS tabla, COUNT(*) AS total_registros
 FROM origen_tickets_soporte
@@ -72,20 +50,13 @@ FROM dim_canal;
    Objetivo:
    Obtener una vista ejecutiva del estado general de soporte.
 
-   SQL utilizado:
-   - VIEW
-   - COUNT
-   - SUM
-   - AVG
-   - CASE dentro de la vista vista_kpis_soporte
-
    Insight:
    Resume el total de tickets, cuantos estan cerrados, cuantos siguen
    abiertos o pendientes, la satisfaccion promedio y el porcentaje de
    cierre. Es la consulta mas ejecutiva del proyecto.
 */
 
-SELECT '01 - KPIs generales del area de soporte' AS seccion;
+-- SELECT '01 - KPIs generales del area de soporte' AS seccion;
 
 SELECT *
 FROM vista_kpis_soporte;
@@ -98,18 +69,12 @@ FROM vista_kpis_soporte;
    Objetivo:
    Medir el volumen de tickets por estado operativo.
 
-   SQL utilizado:
-   - INNER JOIN
-   - COUNT
-   - ROUND
-   - Subquery para calcular el porcentaje sobre el total
-
    Insight:
    Permite entender que parte del volumen esta cerrado y que parte
    sigue pendiente de gestion o respuesta del cliente.
 */
 
-SELECT '02 - Distribucion de tickets por estado' AS seccion;
+-- SELECT '02 - Distribucion de tickets por estado' AS seccion;
 
 SELECT
     de.nombre_estado,
@@ -129,19 +94,13 @@ ORDER BY total_tickets DESC;
    Objetivo:
    Identificar como se distribuyen los tickets segun prioridad.
 
-   SQL utilizado:
-   - INNER JOIN
-   - COUNT
-   - GROUP BY
-   - ORDER BY por nivel de prioridad
-
    Insight:
    Ayuda a entender la carga operativa segun urgencia. Una cantidad alta
    de tickets Critical o High puede indicar presion sobre el equipo de
    soporte.
 */
 
-SELECT '03 - Volumen de tickets por prioridad' AS seccion;
+-- SELECT '03 - Volumen de tickets por prioridad' AS seccion;
 
 SELECT
     dp.nombre_prioridad,
@@ -163,18 +122,12 @@ ORDER BY dp.nivel_prioridad DESC;
    Objetivo:
    Analizar tickets que no estan cerrados, agrupados por prioridad y canal.
 
-   SQL utilizado:
-   - INNER JOIN multiple
-   - COUNT
-   - CASE
-   - GROUP BY
-
    Insight:
    Esta consulta es muy util para operaciones: muestra donde esta la
    carga pendiente y que canales concentran tickets urgentes sin cerrar.
 */
 
-SELECT '04 - Backlog por prioridad y canal' AS seccion;
+-- SELECT '04 - Backlog por prioridad y canal' AS seccion;
 
 SELECT
     dp.nombre_prioridad,
@@ -206,19 +159,13 @@ ORDER BY
    Objetivo:
    Comparar la satisfaccion del cliente segun el canal de atencion.
 
-   SQL utilizado:
-   - VIEW
-   - AVG
-   - COUNT
-   - CASE para clasificar resultado
-
    Insight:
    Permite detectar canales con mejor o peor experiencia. Si un canal
    tiene menor satisfaccion promedio, podria requerir revision de proceso,
    tiempos de respuesta o calidad de atencion.
 */
 
-SELECT '05 - Satisfaccion promedio por canal' AS seccion;
+-- SELECT '05 - Satisfaccion promedio por canal' AS seccion;
 
 SELECT
     nombre_canal,
@@ -242,18 +189,12 @@ ORDER BY promedio_satisfaccion ASC;
    Objetivo:
    Encontrar productos con menor satisfaccion promedio.
 
-   SQL utilizado:
-   - INNER JOIN
-   - AVG
-   - COUNT
-   - HAVING
-
    Insight:
    Un producto con muchos tickets cerrados y baja satisfaccion puede ser
    candidato a analisis de calidad, documentacion, garantia o soporte.
 */
 
-SELECT '06 - Productos con menor satisfaccion promedio' AS seccion;
+-- SELECT '06 - Productos con menor satisfaccion promedio' AS seccion;
 
 SELECT
     dp.nombre_producto,
@@ -277,19 +218,13 @@ LIMIT 10;
    Analizar que tipos de solicitud generan mas volumen y como se relacionan
    con la satisfaccion del cliente.
 
-   SQL utilizado:
-   - INNER JOIN
-   - COUNT
-   - AVG
-   - ROUND
-
    Insight:
    Permite identificar si ciertos tipos de ticket generan mas friccion.
    Por ejemplo, si Refund request o Technical issue tienen baja satisfaccion,
    pueden requerir mejoras especificas.
 */
 
-SELECT '07 - Tipos de ticket por volumen y satisfaccion' AS seccion;
+-- SELECT '07 - Tipos de ticket por volumen y satisfaccion' AS seccion;
 
 SELECT
     dtt.nombre_tipo_ticket,
@@ -310,20 +245,13 @@ ORDER BY total_tickets DESC;
    Objetivo:
    Medir cuantas horas toma resolver tickets cerrados segun prioridad.
 
-   SQL utilizado:
-   - INNER JOIN
-   - TIMESTAMPDIFF
-   - AVG
-   - CASE
-   - WHERE para excluir fechas inconsistentes
-
    Insight:
    En teoria, tickets Critical y High deberian tener tiempos de resolucion
    menores que Medium o Low. Si no ocurre, puede indicar problemas de
    priorizacion operativa.
 */
 
-SELECT '08 - Tiempo promedio de resolucion por prioridad' AS seccion;
+-- SELECT '08 - Tiempo promedio de resolucion por prioridad' AS seccion;
 
 SELECT
     dp.nombre_prioridad,
@@ -354,18 +282,13 @@ ORDER BY dp.nivel_prioridad DESC;
    Objetivo:
    Priorizar productos segun volumen de tickets.
 
-   SQL utilizado:
-   - CTE
-   - RANK() OVER
-   - GROUP BY
-
    Insight:
    La funcion ventana permite rankear productos sin perder el detalle
    agregado. Los productos en los primeros lugares concentran mayor carga
    de soporte y pueden requerir atencion prioritaria.
 */
 
-SELECT '09 - Ranking de productos por volumen de tickets' AS seccion;
+-- SELECT '09 - Ranking de productos por volumen de tickets' AS seccion;
 
 WITH tickets_por_producto AS (
     SELECT
@@ -395,18 +318,12 @@ LIMIT 15;
    Detectar productos que combinan dos senales de riesgo:
    mucho volumen de tickets y satisfaccion por debajo del promedio global.
 
-   SQL utilizado:
-   - CTE encadenada
-   - AVG
-   - Subconsulta logica dentro de CTE
-   - CASE
-
    Insight:
    Esta consulta convierte datos operativos en una lista accionable de
    productos a revisar por negocio, soporte o calidad.
 */
 
-SELECT '10 - Productos con alto volumen y baja satisfaccion' AS seccion;
+-- SELECT '10 - Productos con alto volumen y baja satisfaccion' AS seccion;
 
 WITH promedio_global AS (
     SELECT
@@ -459,19 +376,12 @@ ORDER BY
    Objetivo:
    Identificar clientes que han abierto mas de un ticket.
 
-   SQL utilizado:
-   - LEFT JOIN
-   - COUNT
-   - AVG
-   - GROUP BY
-   - HAVING
-
    Insight:
    Los clientes recurrentes pueden indicar problemas repetidos, mayor
    necesidad de acompanamiento o clientes con alto uso del producto.
 */
 
-SELECT '11 - Clientes recurrentes con mas tickets' AS seccion;
+-- SELECT '11 - Clientes recurrentes con mas tickets' AS seccion;
 
 SELECT
     dc.nombre_cliente,
@@ -498,19 +408,13 @@ LIMIT 20;
    Objetivo:
    Analizar volumen de tickets por mes de compra del producto.
 
-   SQL utilizado:
-   - Funcion de fecha DATE_FORMAT
-   - GROUP BY
-   - COUNT
-   - AVG
-
    Insight:
    Ayuda a encontrar periodos de compra asociados con mayor volumen de
    tickets. Puede ser util para investigar lotes, campanas o periodos de
    mayor demanda.
 */
 
-SELECT '12 - Tendencia mensual de tickets por fecha de compra' AS seccion;
+-- SELECT '12 - Tendencia mensual de tickets por fecha de compra' AS seccion;
 
 SELECT
     DATE_FORMAT(ht.fecha_compra, '%Y-%m') AS anio_mes_compra,
@@ -528,14 +432,6 @@ ORDER BY anio_mes_compra;
    Objetivo:
    Comparar el tiempo real de resolucion contra una regla de negocio SLA.
 
-   SQL utilizado:
-   - CTE encadenada
-   - Funcion personalizada fn_sla_prioridad_horas
-   - TIMESTAMPDIFF
-   - CASE
-   - SUM
-   - AVG
-
    Regla de negocio:
    Critical = 4 horas
    High     = 8 horas
@@ -547,7 +443,7 @@ ORDER BY anio_mes_compra;
    de gestion: no solo cuanto tardamos, sino si cumplimos el objetivo.
 */
 
-SELECT '13 - Cumplimiento de SLA por prioridad' AS seccion;
+-- SELECT '13 - Cumplimiento de SLA por prioridad' AS seccion;
 
 WITH tickets_cerrados_validos AS (
     SELECT
@@ -599,49 +495,8 @@ GROUP BY
 ORDER BY nivel_prioridad DESC;
 
 
--- ------------------------------------------------------------
--- 14. CONSULTA DEMO MODIFICABLE PARA LA PRESENTACION
--- ------------------------------------------------------------
-/*
-   Objetivo:
-   Tener una consulta sencilla para demostrar dominio en vivo.
-
-   Como usarla en clase:
-   1. Ejecutar la consulta filtrando solo Critical.
-   2. Cambiar el filtro a ('Critical', 'High').
-   3. Explicar como cambia el backlog mostrado.
-
-   Ejemplo de modificacion:
-   Cambiar esta linea:
-       WHERE dpr.nombre_prioridad = 'Critical'
-
-   Por esta:
-       WHERE dpr.nombre_prioridad IN ('Critical', 'High')
-
-   Insight:
-   Sirve para mostrar que el modelo permite cambiar rapidamente el foco
-   del analisis sin reescribir toda la consulta.
-*/
-
-SELECT '14 - Consulta demo modificable para presentacion' AS seccion;
-
-SELECT
-    vdt.nombre_prioridad,
-    vdt.nombre_canal,
-    vdt.nombre_estado,
-    COUNT(*) AS total_tickets
-FROM vista_detalle_tickets vdt
-WHERE vdt.nombre_prioridad = 'Critical'
-  AND vdt.nombre_estado <> 'Closed'
-GROUP BY
-    vdt.nombre_prioridad,
-    vdt.nombre_canal,
-    vdt.nombre_estado
-ORDER BY total_tickets DESC;
-
-
 /* ------------------------------------------------------------
-   15. RESUMEN FINAL DE INSIGHTS PRINCIPALES
+   14. RESUMEN FINAL DE INSIGHTS PRINCIPALES
    ------------------------------------------------------------
    Objetivo:
    Presentar en una sola salida algunos resultados clave del análisis.

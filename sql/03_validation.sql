@@ -1,26 +1,7 @@
 /* ============================================================
    PROYECTO SQL - ANALISIS DE TICKETS DE SOPORTE
-   Archivo: 03_validacion_calidad.sql
+   Archivo: 03_validation.sql
    Autor: Arturo Rivera Paniza
-
-   Objetivo:
-   Validar la calidad de los datos cargados en el modelo relacional.
-
-   Este script revisa:
-   - Conteos generales entre origen y modelo final
-   - Valores nulos
-   - Duplicados
-   - Tipos de datos convertidos desde texto
-   - Fechas incorrectas o inconsistentes
-   - Valores fuera de rango
-   - Reglas de negocio
-   - Integridad entre dimensiones y tabla de hechos
-
-   Nota:
-   Este archivo es principalmente de validacion. No debe borrar ni
-   modificar la informacion analitica final del proyecto, salvo la tabla
-   auxiliar resumen_validacion_calidad, que se recrea para documentar
-   los resultados de cada revision.
    ============================================================ */
 
 USE analitica_soporte_clientes;

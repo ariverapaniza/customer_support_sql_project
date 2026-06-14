@@ -36,7 +36,7 @@ El dataset utilizado es:
 El archivo original se encuentra en:
 
 ```text
-datos/crudos/tickets_soporte_clientes.csv
+data/raw/customer_support_tickets.csv
 ```
 
 El dataset contiene:
@@ -58,17 +58,17 @@ El dataset contiene:
 ```text
 Customer_Support_Ticket_Data_Project/
 │
-├── datos/
-│   └── crudos/
-│       └── tickets_soporte_clientes.csv
+├── data/
+│   └── raw/
+│       └── customer_support_tickets.csv
 │
 ├── sql/
-│   ├── 01_creacion_esquema.sql
-│   ├── 02_carga_transformacion.sql
-│   ├── 03_validacion_calidad.sql
-│   └── 04_eda_analisis.sql
+│   ├── 01_schema.sql
+│   ├── 02_data.sql
+│   ├── 03_validation.sql
+│   └── 04_eda.sql
 │
-├── documentacion/
+├── docs/
 │   └── modelo_relacional.png
 │
 ├── README.md
@@ -211,7 +211,7 @@ Esta decisión permite:
 
 ## 9. Scripts SQL
 
-### 9.1 `01_creacion_esquema.sql`
+### 9.1 `01_schema.sql`
 
 Este script crea desde cero la base de datos y su estructura relacional.
 
@@ -236,7 +236,7 @@ analitica_soporte_clientes
 
 ---
 
-### 9.2 `02_carga_transformacion.sql`
+### 9.2 `02_data.sql`
 
 Este script carga y transforma los datos.
 
@@ -255,7 +255,7 @@ El CSV se conserva en el repositorio como fuente original, pero la carga reprodu
 
 ---
 
-### 9.3 `03_validacion_calidad.sql`
+### 9.3 `03_validation.sql`
 
 Este script valida la calidad de los datos.
 
@@ -281,7 +281,7 @@ resumen_validacion_calidad
 
 ---
 
-### 9.4 `04_eda_analisis.sql`
+### 9.4 `04_eda.sql`
 
 Este script contiene el análisis exploratorio y las consultas de negocio.
 
@@ -481,40 +481,7 @@ Esto representa una oportunidad para analizar backlog, priorizar tickets crític
 
 ---
 
-## 16. Consulta demo para presentación
-
-Una consulta preparada para demostración permite analizar tickets críticos no cerrados:
-
-```sql
-SELECT
-    vdt.id_ticket,
-    vdt.nombre_producto,
-    vdt.nombre_prioridad,
-    vdt.nombre_canal,
-    vdt.nombre_estado
-FROM vista_detalle_tickets vdt
-WHERE vdt.nombre_prioridad = 'Critical'
-  AND vdt.nombre_estado <> 'Closed'
-ORDER BY vdt.nombre_producto;
-```
-
-Durante la presentación, se puede modificar esta línea:
-
-```sql
-WHERE vdt.nombre_prioridad = 'Critical'
-```
-
-por esta:
-
-```sql
-WHERE vdt.nombre_prioridad IN ('Critical', 'High')
-```
-
-Esto demuestra cómo el análisis puede ampliarse rápidamente para incluir tickets críticos y de alta prioridad.
-
----
-
-## 17. Limitaciones del proyecto
+## 16. Limitaciones del proyecto
 
 Este proyecto trabaja con un dataset estático en formato CSV.
 
@@ -528,7 +495,7 @@ Limitaciones principales:
 
 ---
 
-## 18. Próximos pasos recomendados
+## 17. Próximos pasos recomendados
 
 Posibles mejoras futuras:
 
@@ -541,7 +508,7 @@ Posibles mejoras futuras:
 
 ---
 
-## 19. Conclusión
+## 18. Conclusión
 
 Este proyecto demuestra cómo transformar un archivo CSV plano en una base de datos relacional normalizada usando MySQL.
 
