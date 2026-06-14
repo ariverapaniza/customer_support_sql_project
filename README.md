@@ -187,6 +187,10 @@ dim_estado          dim_prioridad           dim_canal
 dim_fecha
 ```
 
+### Diagrama del modelo relacional
+
+![Modelo relacional](docs/modelo_relacional.png)
+
 ---
 
 ## 8. Justificación de normalización
