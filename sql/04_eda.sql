@@ -640,28 +640,27 @@ GROUP BY
 ORDER BY total_tickets DESC;
 
 
--- ------------------------------------------------------------
--- 15. RESUMEN FINAL DE INSIGHTS PRINCIPALES
--- ------------------------------------------------------------
-/*
+/* ------------------------------------------------------------
+   15. RESUMEN FINAL DE INSIGHTS PRINCIPALES
+   ------------------------------------------------------------
    Objetivo:
-   Dejar una salida final corta que apoye la presentacion.
+   Presentar en una sola salida algunos resultados clave del análisis.
 
-   Insight:
-   Esta tabla resume tres lineas de lectura de negocio para usar como
-   cierre: volumen, satisfaccion y backlog.
+   Nota técnica:
+   Se fuerza la misma collation en todas las columnas de texto para
+   evitar errores de UNION por mezcla de collations en MySQL.
 */
 
-SELECT '15 - Resumen final de insights principales' AS seccion;
+SELECT
+    CONVERT('Total de tickets analizados' USING utf8mb4) COLLATE utf8mb4_spanish_ci AS insight,
+    CONVERT(CAST(COUNT(*) AS CHAR) USING utf8mb4) COLLATE utf8mb4_spanish_ci AS valor
+FROM hecho_tickets
+
+UNION ALL
 
 SELECT
-    'Total de tickets analizados' AS insight,
-    CAST(COUNT(*) AS CHAR) AS valor
-FROM hecho_tickets
-UNION ALL
-SELECT
-    'Producto con mas tickets' AS insight,
-    nombre_producto AS valor
+    CONVERT('Producto con mas tickets' USING utf8mb4) COLLATE utf8mb4_spanish_ci AS insight,
+    CONVERT(nombre_producto USING utf8mb4) COLLATE utf8mb4_spanish_ci AS valor
 FROM (
     SELECT
         dp.nombre_producto,
@@ -673,10 +672,12 @@ FROM (
     ORDER BY total_tickets DESC
     LIMIT 1
 ) producto_top
+
 UNION ALL
+
 SELECT
-    'Canal con menor satisfaccion promedio' AS insight,
-    nombre_canal AS valor
+    CONVERT('Canal con menor satisfaccion promedio' USING utf8mb4) COLLATE utf8mb4_spanish_ci AS insight,
+    CONVERT(nombre_canal USING utf8mb4) COLLATE utf8mb4_spanish_ci AS valor
 FROM (
     SELECT
         dc.nombre_canal,
@@ -689,9 +690,11 @@ FROM (
     ORDER BY promedio_satisfaccion ASC
     LIMIT 1
 ) canal_bajo
+
 UNION ALL
+
 SELECT
-    'Tickets no cerrados' AS insight,
-    CAST(COUNT(*) AS CHAR) AS valor
+    CONVERT('Tickets no cerrados' USING utf8mb4) COLLATE utf8mb4_spanish_ci AS insight,
+    CONVERT(CAST(COUNT(*) AS CHAR) USING utf8mb4) COLLATE utf8mb4_spanish_ci AS valor
 FROM vista_detalle_tickets
 WHERE nombre_estado <> 'Closed';
