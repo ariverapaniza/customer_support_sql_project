@@ -11,15 +11,12 @@ USE analitica_soporte_clientes;
 -- 0. VERIFICACION INICIAL DEL MODELO
 -- ------------------------------------------------------------
 /*
-   Objetivo: Confirmar que las tablas principales tienen datos cargados antes de
-   iniciar el analisis.
+   Objetivo: Confirmar que las tablas principales tienen datos cargados antes de iniciar el analisis.
 
    Insight:
-   Si origen_tickets_soporte y hecho_tickets tienen el mismo total,
-   la carga principal fue consistente.
+   Si origen_tickets_soporte y hecho_tickets tienen el mismo total, la carga principal fue consistente.
 */
 
--- SELECT '00 - Verificacion inicial del modelo' AS seccion;
 
 SELECT 'origen_tickets_soporte' AS tabla, COUNT(*) AS total_registros
 FROM origen_tickets_soporte
@@ -51,12 +48,10 @@ FROM dim_canal;
    Obtener una vista ejecutiva del estado general de soporte.
 
    Insight:
-   Resume el total de tickets, cuantos estan cerrados, cuantos siguen
-   abiertos o pendientes, la satisfaccion promedio y el porcentaje de
+   Resume el total de tickets, cuantos estan cerrados, cuantos siguen abiertos o pendientes, la satisfaccion promedio y el porcentaje de 
    cierre. Es la consulta mas ejecutiva del proyecto.
 */
 
--- SELECT '01 - KPIs generales del area de soporte' AS seccion;
 
 SELECT *
 FROM vista_kpis_soporte;
@@ -70,11 +65,9 @@ FROM vista_kpis_soporte;
    Medir el volumen de tickets por estado operativo.
 
    Insight:
-   Permite entender que parte del volumen esta cerrado y que parte
-   sigue pendiente de gestion o respuesta del cliente.
+   Permite entender que parte del volumen esta cerrado y que parte sigue pendiente de gestion o respuesta del cliente.
 */
 
--- SELECT '02 - Distribucion de tickets por estado' AS seccion;
 
 SELECT
     de.nombre_estado,
@@ -95,12 +88,9 @@ ORDER BY total_tickets DESC;
    Identificar como se distribuyen los tickets segun prioridad.
 
    Insight:
-   Ayuda a entender la carga operativa segun urgencia. Una cantidad alta
-   de tickets Critical o High puede indicar presion sobre el equipo de
-   soporte.
+   Ayuda a entender la carga operativa segun urgencia. Una cantidad alta de tickets Critical o High puede indicar presion sobre el equipo de soporte.
 */
 
--- SELECT '03 - Volumen de tickets por prioridad' AS seccion;
 
 SELECT
     dp.nombre_prioridad,
@@ -123,11 +113,9 @@ ORDER BY dp.nivel_prioridad DESC;
    Analizar tickets que no estan cerrados, agrupados por prioridad y canal.
 
    Insight:
-   Esta consulta es muy util para operaciones: muestra donde esta la
-   carga pendiente y que canales concentran tickets urgentes sin cerrar.
+   Esta consulta es muy util para operaciones: muestra donde esta la carga pendiente y que canales concentran tickets urgentes sin cerrar.
 */
 
--- SELECT '04 - Backlog por prioridad y canal' AS seccion;
 
 SELECT
     dp.nombre_prioridad,
@@ -160,12 +148,10 @@ ORDER BY
    Comparar la satisfaccion del cliente segun el canal de atencion.
 
    Insight:
-   Permite detectar canales con mejor o peor experiencia. Si un canal
-   tiene menor satisfaccion promedio, podria requerir revision de proceso,
+   Permite detectar canales con mejor o peor experiencia. si un canal tiene menor satisfaccion promedio, podria requerir revision de proceso, 
    tiempos de respuesta o calidad de atencion.
 */
 
--- SELECT '05 - Satisfaccion promedio por canal' AS seccion;
 
 SELECT
     nombre_canal,
@@ -190,11 +176,9 @@ ORDER BY promedio_satisfaccion ASC;
    Encontrar productos con menor satisfaccion promedio.
 
    Insight:
-   Un producto con muchos tickets cerrados y baja satisfaccion puede ser
-   candidato a analisis de calidad, documentacion, garantia o soporte.
+   Un producto con muchos tickets cerrados y baja satisfaccion puede ser candidato a analisis de calidad, documentacion, garantia o soporte.
 */
 
--- SELECT '06 - Productos con menor satisfaccion promedio' AS seccion;
 
 SELECT
     dp.nombre_producto,
@@ -215,16 +199,13 @@ LIMIT 10;
 -- ------------------------------------------------------------
 /*
    Objetivo:
-   Analizar que tipos de solicitud generan mas volumen y como se relacionan
-   con la satisfaccion del cliente.
+   Analizar que tipos de solicitud generan mas volumen y como se relacionan con la satisfaccion del cliente.
 
    Insight:
    Permite identificar si ciertos tipos de ticket generan mas friccion.
-   Por ejemplo, si Refund request o Technical issue tienen baja satisfaccion,
-   pueden requerir mejoras especificas.
+   Por ejemplo, si Refund request o Technical issue tienen baja satisfaccion, pueden requerir mejoras especificas.
 */
 
--- SELECT '07 - Tipos de ticket por volumen y satisfaccion' AS seccion;
 
 SELECT
     dtt.nombre_tipo_ticket,
@@ -246,12 +227,9 @@ ORDER BY total_tickets DESC;
    Medir cuantas horas toma resolver tickets cerrados segun prioridad.
 
    Insight:
-   En teoria, tickets Critical y High deberian tener tiempos de resolucion
-   menores que Medium o Low. Si no ocurre, puede indicar problemas de
-   priorizacion operativa.
+   En teoria, tickets Critical y High deberian tener tiempos de resolucion menores que Medium o Low. Si no ocurre, puede indicar problemas de priorizacion operativa.
 */
 
--- SELECT '08 - Tiempo promedio de resolucion por prioridad' AS seccion;
 
 SELECT
     dp.nombre_prioridad,
@@ -283,12 +261,9 @@ ORDER BY dp.nivel_prioridad DESC;
    Priorizar productos segun volumen de tickets.
 
    Insight:
-   La funcion ventana permite rankear productos sin perder el detalle
-   agregado. Los productos en los primeros lugares concentran mayor carga
-   de soporte y pueden requerir atencion prioritaria.
+   La funcion ventana permite rankear productos sin perder el detalle agregado. Los productos en los primeros lugares concentran mayor carga de soporte y pueden requerir atencion prioritaria.
 */
 
--- SELECT '09 - Ranking de productos por volumen de tickets' AS seccion;
 
 WITH tickets_por_producto AS (
     SELECT
@@ -319,11 +294,9 @@ LIMIT 15;
    mucho volumen de tickets y satisfaccion por debajo del promedio global.
 
    Insight:
-   Esta consulta convierte datos operativos en una lista accionable de
-   productos a revisar por negocio, soporte o calidad.
+   Esta consulta convierte datos operativos en una lista accionable de productos a revisar por negocio, soporte o calidad.
 */
 
--- SELECT '10 - Productos con alto volumen y baja satisfaccion' AS seccion;
 
 WITH promedio_global AS (
     SELECT
@@ -377,11 +350,9 @@ ORDER BY
    Identificar clientes que han abierto mas de un ticket.
 
    Insight:
-   Los clientes recurrentes pueden indicar problemas repetidos, mayor
-   necesidad de acompanamiento o clientes con alto uso del producto.
+   Los clientes recurrentes pueden indicar problemas repetidos, mayor necesidad de acompanamiento o clientes con alto uso del producto.
 */
 
--- SELECT '11 - Clientes recurrentes con mas tickets' AS seccion;
 
 SELECT
     dc.nombre_cliente,
@@ -409,12 +380,9 @@ LIMIT 20;
    Analizar volumen de tickets por mes de compra del producto.
 
    Insight:
-   Ayuda a encontrar periodos de compra asociados con mayor volumen de
-   tickets. Puede ser util para investigar lotes, campanas o periodos de
-   mayor demanda.
+   Ayuda a encontrar periodos de compra asociados con mayor volumen de tickets. Puede ser util para investigar lotes, campanas o periodos de mayor demanda.
 */
 
--- SELECT '12 - Tendencia mensual de tickets por fecha de compra' AS seccion;
 
 SELECT
     DATE_FORMAT(ht.fecha_compra, '%Y-%m') AS anio_mes_compra,
@@ -439,11 +407,9 @@ ORDER BY anio_mes_compra;
    Low      = 48 horas
 
    Insight:
-   Esta consulta permite pasar de un analisis descriptivo a un analisis
-   de gestion: no solo cuanto tardamos, sino si cumplimos el objetivo.
+   Esta consulta permite pasar de un analisis descriptivo a un analisis de gestion: no solo cuanto tardamos, sino si cumplimos el objetivo.
 */
 
--- SELECT '13 - Cumplimiento de SLA por prioridad' AS seccion;
 
 WITH tickets_cerrados_validos AS (
     SELECT
@@ -502,8 +468,7 @@ ORDER BY nivel_prioridad DESC;
    Presentar en una sola salida algunos resultados clave del análisis.
 
    Nota técnica:
-   Se fuerza la misma collation en todas las columnas de texto para
-   evitar errores de UNION por mezcla de collations en MySQL.
+   Se fuerza la misma collation en todas las columnas de texto para evitar errores de UNION por mezcla de collations en MySQL.
 */
 
 SELECT

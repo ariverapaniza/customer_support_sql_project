@@ -1,11 +1,12 @@
 # ============================================================
-# Archivos del sistema operativo
+# Archivos del sistema operativo y otros archivos
 # ============================================================
 
 .DS_Store
 Thumbs.db
 desktop.ini
-
+README_old.md
+sql/02_data_old.sql
 
 # ============================================================
 # Archivos temporales de editores

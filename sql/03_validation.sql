@@ -11,8 +11,7 @@ USE analitica_soporte_clientes;
 -- 1. TABLA AUXILIAR PARA DOCUMENTAR RESULTADOS DE VALIDACION
 -- ------------------------------------------------------------
 /*
-   Esta tabla guarda un resumen de cada prueba de calidad.
-   Sirve para dejar evidencia ejecutable de las validaciones realizadas.
+   Esta tabla guarda un resumen de cada prueba de calidad y sirve para dejar evidencia ejecutable de las validaciones realizadas.
 */
 
 CREATE TABLE IF NOT EXISTS resumen_validacion_calidad (
@@ -32,8 +31,7 @@ TRUNCATE TABLE resumen_validacion_calidad;
 -- ------------------------------------------------------------
 /*
    Validacion inicial:
-   Confirmar que la tabla de origen y la tabla de hechos tienen
-   la misma cantidad de tickets cargados.
+   Confirmar que la tabla de origen y la tabla de hechos tienen la misma cantidad de tickets cargados.
 */
 
 SELECT 'origen_tickets_soporte' AS tabla, COUNT(*) AS total_registros
@@ -82,8 +80,7 @@ SELECT
 -- 3. VALIDACION DE NULOS EN CAMPOS CRITICOS DEL ORIGEN
 -- ------------------------------------------------------------
 /*
-   En la tabla de origen, algunos campos son obligatorios para poder
-   construir correctamente el modelo dimensional.
+   En la tabla de origen algunos campos son obligatorios para poder construir correctamente el modelo dimensional.
 */
 
 SELECT
@@ -132,7 +129,7 @@ FROM origen_tickets_soporte;
 -- ------------------------------------------------------------
 /*
    Regla:
-   id_ticket_origen debe ser unico, porque representa un ticket individual.
+   id_ticket_origen debe ser unico, porque representa un ticket individual, si hay un duplicado se vera.
 */
 
 SELECT
@@ -162,8 +159,7 @@ FROM (
 -- ------------------------------------------------------------
 /*
    Esta consulta demuestra el uso de ROW_NUMBER() OVER(PARTITION BY ...).
-   Si existieran tickets duplicados, numero_fila > 1 permitiria ubicar
-   las filas repetidas candidatas a revision o eliminacion.
+   Si existieran tickets duplicados, numero_fila > 1 permitiria ubicar las filas repetidas candidatas a revision o eliminacion.
 */
 
 WITH tickets_numerados AS (
@@ -188,9 +184,7 @@ WHERE numero_fila > 1;
 -- 6. CORREOS REPETIDOS EN ORIGEN
 -- ------------------------------------------------------------
 /*
-   Un correo repetido no necesariamente es un error.
-   En este modelo significa que un mismo cliente puede tener varios tickets.
-   Por eso dim_cliente tiene menos filas que origen_tickets_soporte.
+   Un correo repetido no necesariamente es un error asi que en este modelo significa que un mismo cliente puede tener varios tickets y por eso dim_cliente tiene menos filas que origen_tickets_soporte.
 */
 
 SELECT
@@ -220,8 +214,7 @@ FROM (
 -- 7. FORMATO BASICO DE CORREO ELECTRONICO
 -- ------------------------------------------------------------
 /*
-   Validacion sencilla de formato de correo.
-   No busca ser una validacion perfecta, sino detectar casos claramente invalidos.
+   Aqui haremos una validacion sencilla de formato de correo y aunque no busca ser una validacion perfecta, sino detectar casos claramente invalidos.
 */
 
 SELECT
@@ -250,8 +243,7 @@ WHERE correo_cliente IS NULL
 -- 8. EDADES FUERA DE RANGO O NO NUMERICAS
 -- ------------------------------------------------------------
 /*
-   La dimension dim_cliente exige edad entre 18 y 100.
-   Esta consulta revisa el campo crudo antes de la conversion.
+   La dimension dim_cliente exige edad entre 18 y 100 y esta consulta revisa el campo crudo antes de la conversion.
 */
 
 WITH edades_convertidas AS (
@@ -296,8 +288,7 @@ WHERE edad_convertida IS NULL
 -- ------------------------------------------------------------
 /*
    Regla:
-   La satisfaccion debe estar entre 1 y 5.
-   Puede ser NULL cuando el ticket no esta cerrado.
+   La satisfaccion debe estar entre 1 y 5 y puede ser NULL cuando el ticket no esta cerrado.
 */
 
 WITH calificaciones_convertidas AS (
@@ -344,8 +335,7 @@ WHERE calificacion_convertida IS NOT NULL
 -- 10. FECHAS INVALIDAS EN CAMPOS DE TEXTO
 -- ------------------------------------------------------------
 /*
-   Se valida que las fechas de texto puedan convertirse correctamente.
-   Esto demuestra control de tipos antes y despues de la transformacion.
+   Se valida que las fechas de texto puedan convertirse correctamente y esto demuestra control de tipos antes y despues de la transformacion.
 */
 
 SELECT
@@ -413,8 +403,7 @@ WHERE fecha_resolucion_texto IS NOT NULL
 -- ------------------------------------------------------------
 /*
    Regla esperada:
-   - Tickets cerrados deberian tener resolucion, fecha de resolucion
-     y calificacion de satisfaccion.
+   - Tickets cerrados deberian tener resolucion, fecha de resolucion valida y posterior a la fecha de inicio del ticket y calificacion de satisfaccion.
    - Tickets abiertos o pendientes pueden tener esos campos como NULL.
 */
 
@@ -463,8 +452,7 @@ ORDER BY total_tickets DESC;
 -- 12. FECHAS INCONSISTENTES Y TIEMPOS NEGATIVOS
 -- ------------------------------------------------------------
 /*
-   En una operacion real, la resolucion no deberia ocurrir antes
-   de la primera respuesta. Si ocurre, se marca como inconsistencia.
+   En una operacion real, la resolucion no deberia ocurrir antes de la primera respuesta. Si ocurre, se marca como inconsistencia.
 */
 
 SELECT
@@ -497,8 +485,7 @@ WHERE fecha_primera_respuesta IS NOT NULL
 -- 13. OUTLIERS DE TIEMPO DE RESOLUCION
 -- ------------------------------------------------------------
 /*
-   Se consideran outliers operativos los tickets con resolucion mayor
-   a 72 horas desde la primera respuesta. Este umbral es una regla
+   Se consideran outliers operativos los tickets con resolucion mayor a 72 horas desde la primera respuesta. Este umbral es una regla
    practica para detectar casos que requieren revision.
 */
 
@@ -533,8 +520,7 @@ WHERE fecha_primera_respuesta IS NOT NULL
 -- 14. INTEGRIDAD ENTRE DIMENSIONES Y TABLA DE HECHOS
 -- ------------------------------------------------------------
 /*
-   Con LEFT JOIN se buscan dimensiones que quedaron sin uso.
-   No necesariamente es error, pero en este proyecto se espera que
+   Con LEFT JOIN se buscan dimensiones que quedaron sin uso. Esto no necesariamente es error, pero en este proyecto se espera que
    todas las dimensiones provengan de valores presentes en los tickets.
 */
 
@@ -582,11 +568,9 @@ WHERE ht.id_ticket IS NULL;
 -- ------------------------------------------------------------
 /*
    Este bloque demuestra como se podria corregir un valor nulo.
-   Sin embargo, se usa ROLLBACK porque en este modelo los NULL en
-   resolucion son validos para tickets abiertos o pendientes.
+   Sin embargo, se usa ROLLBACK porque en este modelo los NULL en resolucion son validos para tickets abiertos o pendientes.
 
-   Esto permite demostrar dominio de transacciones sin alterar el
-   resultado final del analisis.
+   Esto permite demostrar dominio de transacciones sin alterar el resultado final del analisis.
 */
 
 START TRANSACTION;

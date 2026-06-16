@@ -22,7 +22,7 @@ USE analitica_soporte_clientes;
 -- 2. TABLA DE ORIGEN / STAGING
 -- ------------------------------------------------------------
 /*
-   Esta tabla representa la capa de carga inicial.
+   Esta tabla representa la capa de carga inicial creando la base de todo el proyecto para su posterior analisis
 */
 
 CREATE TABLE IF NOT EXISTS origen_tickets_soporte (
@@ -146,7 +146,7 @@ CREATE TABLE IF NOT EXISTS dim_estado (
 /*
    Tabla: dim_prioridad
    nivel_prioridad:
-   Permite ordenar prioridades de forma lógica:
+   nos permite ordenar prioridades de forma lógica:
    1 = Low
    2 = Medium
    3 = High
@@ -169,7 +169,7 @@ CREATE TABLE IF NOT EXISTS dim_prioridad (
 -- ------------------------------------------------------------
 /*
    Tabla: dim_canal
-
+   Es apra catalogar los diferentes medios donde estan entrando los tickets
    Ejemplos: Email, Phone, Chat, Social media.
 */
 
@@ -275,19 +275,19 @@ CREATE TABLE IF NOT EXISTS hecho_tickets (
 -- 12. INDICES
 -- ------------------------------------------------------------
 /*
-   Los índices ayudan a mejorar el rendimiento de consultas analíticas.
+   Los índices nos ayudaran a mejorar el rendimiento de estas consultas analíticas
 
    idx_hecho_estado_prioridad:
-   Útil para consultas de backlog, por ejemplo tickets abiertos por prioridad.
+   es util para consultas de backlog, por ejemplo tickets abiertos por prioridad y asi sabremos cuantos tickets estan causando mas problemas por estar abiertos sin solucion
 
    idx_hecho_producto:
-   Útil para analizar volumen de tickets por producto.
+   es util para analizar volumen de tickets por producto.
 
    idx_hecho_canal:
-   Útil para analizar tickets y satisfacción por canal.
+   es util para analizar tickets y satisfacción por canal y asi nos dara una idea concreta de cual canal esta mejor y cual canal necesita mas atencion.
 
    idx_hecho_fecha_compra:
-   Útil para análisis temporal.
+   Es util para analisis temporal.
 */
 
 CREATE INDEX idx_hecho_estado_prioridad
@@ -358,7 +358,7 @@ INNER JOIN dim_canal dca
 -- ------------------------------------------------------------
 /*
    Vista: vista_kpis_soporte
-
+   Tabla Vista muy importante para darnos un pantallaso general de ocmo esta los kpis
    Métricas:
    - Total de tickets
    - Tickets cerrados
@@ -389,7 +389,7 @@ FROM vista_detalle_tickets;
 -- ------------------------------------------------------------
 /*
    Funcion: fn_sla_prioridad_horas
-
+   
    Regla de negocio propuesta:
    - Critical: 4 horas
    - High: 8 horas
@@ -425,7 +425,7 @@ DELIMITER ;
 -- 16. CONSULTAS RAPIDAS DE VERIFICACION DEL ESQUEMA
 -- ------------------------------------------------------------
 /*
-   Estas consultas permiten confirmar que las tablas, vistas y función
+   En estas consultas vamos a confirmar que las tablas, vistas y funciones
    fueron creadas correctamente.
 */
 

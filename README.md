@@ -242,7 +242,7 @@ Este script carga y transforma los datos.
 
 Incluye:
 
-* Inserción de datos en la tabla de origen.
+* Carga del archivo CSV original en la tabla de origen mediante `LOAD DATA LOCAL INFILE`.
 * Limpieza básica de campos.
 * Conversión de tipos.
 * Carga de dimensiones.
@@ -250,8 +250,17 @@ Incluye:
 * Uso de transacciones.
 * Uso de `INSERT`, `UPDATE` y `DELETE`.
 
-El proyecto no depende de una ruta local del CSV para ejecutarse.
-El CSV se conserva en el repositorio como fuente original, pero la carga reproducible se realiza mediante instrucciones SQL.
+Importante: antes de ejecutar este script en MySQL Workbench, se debe modificar manualmente la ruta del archivo CSV en la línea `LOAD DATA LOCAL INFILE`.
+
+El archivo CSV se encuentra dentro del repositorio en:
+
+```text
+data/raw/customer_support_tickets.csv
+```
+
+Cada persona que clone o descargue el proyecto debe reemplazar la ruta de ejemplo por la ruta absoluta del archivo en su propio computador.
+
+Si MySQL Workbench muestra un error relacionado con `LOCAL INFILE`, se debe habilitar la opción `local_infile` en el servidor MySQL y también permitir `OPT_LOCAL_INFILE=1` en la conexión de MySQL Workbench. Los pasos detallados están en la sección **13. Cómo ejecutar el proyecto en MySQL Workbench**.
 
 ---
 
@@ -383,22 +392,155 @@ El índice `idx_hecho_estado_prioridad` es útil para consultas de backlog, ya q
 
 ---
 
-## 13. Cómo ejecutar el proyecto
+## 13. Cómo ejecutar el proyecto en MySQL Workbench
 
 Para ejecutar el proyecto desde cero en MySQL Workbench:
 
-1. Abrir MySQL Workbench.
-2. Conectarse al servidor local de MySQL.
-3. Abrir y ejecutar los scripts en este orden:
+1. Descargar o clonar este repositorio.
+2. Abrir MySQL Workbench.
+3. Conectarse al servidor local de MySQL.
+4. Abrir y ejecutar primero el script:
 
 ```text
-sql/01_creacion_esquema.sql
-sql/02_carga_transformacion.sql
-sql/03_validacion_calidad.sql
-sql/04_eda_analisis.sql
+sql/01_schema.sql
 ```
 
-El primer script elimina y recrea la base de datos, por lo que el proyecto puede ejecutarse desde cero.
+Este script elimina y recrea la base de datos `analitica_soporte_clientes`.
+
+### 13.1 Configurar la ruta del CSV en `02_data.sql`
+
+Antes de ejecutar `sql/02_data.sql`, abrir el archivo y buscar la línea que empieza con:
+
+```sql
+LOAD DATA LOCAL INFILE
+```
+
+La línea de ejemplo puede verse así:
+
+```sql
+LOAD DATA LOCAL INFILE 'C:/Users/TU_USUARIO/Downloads/Customer_Support_Ticket_Data_Project/data/raw/customer_support_tickets.csv'
+```
+
+Se debe reemplazar esa ruta por la ruta absoluta donde se encuentre el archivo `customer_support_tickets.csv` en el computador local.
+
+El archivo está dentro del proyecto en:
+
+```text
+data/raw/customer_support_tickets.csv
+```
+
+### Ejemplo en Windows
+
+Si el archivo se encuentra en esta ubicación:
+
+```text
+C:\Users\artur\OneDrive\Documents\Evolve\SQL\Customer_Support_Ticket_Data_Project\data\raw\customer_support_tickets.csv
+```
+
+En el script SQL se recomienda escribir la ruta usando `/` en vez de `\`:
+
+```sql
+LOAD DATA LOCAL INFILE 'C:/Users/artur/OneDrive/Documents/Evolve/SQL/Customer_Support_Ticket_Data_Project/data/raw/customer_support_tickets.csv'
+```
+
+También es válido usar doble barra invertida `\\`, pero es menos legible:
+
+```sql
+LOAD DATA LOCAL INFILE 'C:\\Users\\artur\\OneDrive\\Documents\\Evolve\\SQL\\Customer_Support_Ticket_Data_Project\\data\\raw\\customer_support_tickets.csv'
+```
+
+Importante: evitar mezclar barras en la misma ruta. Por ejemplo, no usar una ruta como esta:
+
+```sql
+LOAD DATA LOCAL INFILE 'C:\Users\artur\OneDrive\Documents\Evolve\SQL\Customer_Support_Ticket_Data_Project\data\raw/customer_support_tickets.csv'
+```
+
+### Ejemplo en macOS
+
+Si el proyecto está en la carpeta `Documents`, la ruta podría verse así:
+
+```sql
+LOAD DATA LOCAL INFILE '/Users/arturo/Documents/Customer_Support_Ticket_Data_Project/data/raw/customer_support_tickets.csv'
+```
+
+En macOS se usa `/` de forma natural en la ruta.
+
+### 13.2 Habilitar `LOCAL INFILE` en MySQL Workbench
+
+El script `02_data.sql` usa:
+
+```sql
+LOAD DATA LOCAL INFILE
+```
+
+Si MySQL Workbench muestra un error como este:
+
+```text
+Error Code: 3948. Loading local data is disabled; this must be enabled on both the client and server sides
+```
+
+se debe habilitar la carga local en dos lugares: en el servidor MySQL y en la conexión de MySQL Workbench.
+
+#### Paso A: habilitar `local_infile` en el servidor MySQL
+
+En MySQL Workbench, abrir una pestaña nueva y ejecutar:
+
+```sql
+SHOW GLOBAL VARIABLES LIKE 'local_infile';
+```
+
+Si el valor aparece como `OFF`, ejecutar:
+
+```sql
+SET GLOBAL local_infile = 1;
+```
+
+Luego validar nuevamente:
+
+```sql
+SHOW GLOBAL VARIABLES LIKE 'local_infile';
+```
+
+El resultado esperado es:
+
+```text
+local_infile    ON
+```
+
+Si `SET GLOBAL local_infile = 1;` genera un error de permisos, conectarse con un usuario administrador, por ejemplo `root`.
+
+#### Paso B: habilitar `LOCAL INFILE` en la conexión de MySQL Workbench
+
+En MySQL Workbench:
+
+```text
+Database > Manage Connections
+```
+
+Seleccionar la conexión local y abrir la pestaña:
+
+```text
+Advanced
+```
+
+En el campo **Others**, agregar:
+
+```text
+OPT_LOCAL_INFILE=1
+```
+
+Guardar los cambios, cerrar la conexión actual y volver a conectarse.
+
+### 13.3 Ejecutar los scripts en orden
+
+Después de ajustar la ruta del CSV y habilitar `LOCAL INFILE`, ejecutar los scripts en este orden:
+
+```text
+sql/01_schema.sql
+sql/02_data.sql
+sql/03_validation.sql
+sql/04_eda.sql
+```
 
 ---
 
